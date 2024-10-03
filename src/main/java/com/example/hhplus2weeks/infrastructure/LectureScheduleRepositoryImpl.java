@@ -5,7 +5,9 @@ import com.example.hhplus2weeks.domain.lecture.repository.LectureScheduleReposit
 import com.example.hhplus2weeks.infrastructure.entity.LectureScheduleEntity;
 import com.example.hhplus2weeks.infrastructure.mapper.LectureScheduleMapper;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.LockModeType;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -21,12 +23,18 @@ public class LectureScheduleRepositoryImpl implements LectureScheduleRepository 
 
     @Override
     public LectureSchedule lockFindByLectureScheduleId(Long lectureScheduleId) {
-        return LectureScheduleMapper.toDomain(lectureScheduleJpaRepository.findById(lectureScheduleId).orElseThrow(EntityNotFoundException::new));
+        return LectureScheduleMapper.toDomain(lectureScheduleJpaRepository.findLectureScheduleById(lectureScheduleId).orElseThrow(EntityNotFoundException::new));
     }
 
     @Override
     public LectureSchedule save(LectureSchedule lectureSchedule) {
         return LectureScheduleMapper.toDomain(lectureScheduleJpaRepository.save(LectureScheduleMapper.toEntity(lectureSchedule)));
+    }
+
+    @Override
+    public LectureSchedule findById(Long lectureScheduleId) {
+        return LectureScheduleMapper.toDomain(lectureScheduleJpaRepository.findById(lectureScheduleId)
+                .orElseThrow(EntityNotFoundException::new));
     }
 
     @Override

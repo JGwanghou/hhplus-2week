@@ -46,5 +46,11 @@ public class LectureController {
         return ResponseEntity.ok(lectureService.lectureScheduleApply(lectureScheduleId, applyRequest.getUserId()));
     }
 
-
+    /**
+     *  특강 신청 완료 목록 조회
+     */
+//    @GetMapping("/{userId}/user")
+//    public ResponseEntity<LectureSchedule> history(@PathVariable Long userId, @RequestParam Long lectureScheduleId){
+//        return ResponseEntity.ok(lectureService.lectureApplyCheck(userId, lectureScheduleId));
+//    }
 }

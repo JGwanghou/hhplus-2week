@@ -3,6 +3,7 @@ package com.example.hhplus2weeks.domain.lecture.service;
 import com.example.hhplus2weeks.domain.lecture.Lecture;
 import com.example.hhplus2weeks.domain.lecture.LectureHistory;
 import com.example.hhplus2weeks.domain.lecture.LectureSchedule;
+import com.example.hhplus2weeks.domain.lecture.exception.DuplicateRequestsException;
 import com.example.hhplus2weeks.domain.lecture.repository.LectureHistoryRepository;
 import com.example.hhplus2weeks.domain.lecture.repository.LectureScheduleRepository;
 import com.example.hhplus2weeks.infrastructure.mapper.LectureHistoryMapper;
@@ -35,7 +36,11 @@ class LectureServiceTest {
     @Mock
     private LectureHistoryRepository lectureHistoryRepository;
 
+    @Mock
+    private LectureApplyValid lectureApplyValid;
+
     private LectureSchedule lectureSchedule1;
+    private LectureHistory lectureHistory;
 
     @BeforeEach
     void setup() {
@@ -48,16 +53,20 @@ class LectureServiceTest {
                 30,
                 LocalDateTime.of(2024, 10, 12, 10, 00)
         );
+
+        lectureHistory = LectureHistory.create(1L, lectureSchedule1, 29L);
     }
 
 
     @Test
     @DisplayName("특강 신청")
-    void 단순특강신청() {
+    void 단순_특강신청() {
         Long lectureSche = 1L;
-        Long userId = 1L;
+        Long userId = 29L;
 
         when(lectureScheduleRepository.lockFindByLectureScheduleId(lectureSche)).thenReturn(lectureSchedule1);
+        when(lectureApplyValid.isApplyCheck(lectureSchedule1, userId)).thenReturn(false);
+
         LectureSchedule lectureSchedule = lectureService.lectureScheduleApply(lectureSche, userId);
 
         assertEquals(lectureSchedule.getRegisterCount(), 1);
@@ -65,4 +74,19 @@ class LectureServiceTest {
     }
 
 
+    @Test
+    @DisplayName("중복 특강 신청")
+    void 중복_특강신청_예외발생() {
+        Long lectureSche = 1L;
+        Long userId = 29L;
+
+        when(lectureScheduleRepository.lockFindByLectureScheduleId(lectureSche)).thenReturn(lectureSchedule1);
+        when(lectureApplyValid.isApplyCheck(lectureSchedule1, userId)).thenReturn(true);
+
+        DuplicateRequestsException exception = assertThrows(
+                DuplicateRequestsException.class, () -> lectureService.lectureScheduleApply(lectureSche, userId)
+        );
+
+        assertEquals("이미 신청된 강의입니다.", exception.getMessage());
+    }
 }

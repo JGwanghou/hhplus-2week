@@ -3,23 +3,21 @@ package com.example.hhplus2weeks.domain.lecture.service;
 import com.example.hhplus2weeks.domain.lecture.Lecture;
 import com.example.hhplus2weeks.domain.lecture.LectureHistory;
 import com.example.hhplus2weeks.domain.lecture.LectureSchedule;
+import com.example.hhplus2weeks.domain.lecture.exception.DuplicateRequestsException;
 import com.example.hhplus2weeks.domain.lecture.repository.LectureHistoryRepository;
 import com.example.hhplus2weeks.domain.lecture.repository.LectureRepository;
 import com.example.hhplus2weeks.domain.lecture.repository.LectureScheduleRepository;
-import com.example.hhplus2weeks.infrastructure.entity.LectureEntity;
-import com.example.hhplus2weeks.infrastructure.entity.LectureScheduleEntity;
-import com.example.hhplus2weeks.infrastructure.mapper.LectureHistoryMapper;
-import com.example.hhplus2weeks.infrastructure.mapper.LectureMapper;
-import com.example.hhplus2weeks.infrastructure.mapper.LectureScheduleMapper;
-import jakarta.persistence.EntityNotFoundException;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.concurrent.locks.ReentrantLock;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +26,8 @@ public class LectureService {
     private final LectureRepository lectureRepository;
     private final LectureScheduleRepository lectureScheduleRepository;
     private final LectureHistoryRepository lectureHistoryRepository;
+    private final LectureApplyValid lectureApplyValid;
+    private ReentrantLock lock = new ReentrantLock();
 
     public List<Lecture> findAllLectureList() {
         return lectureRepository.findAllLectureList();
@@ -45,14 +45,17 @@ public class LectureService {
 
 
     // 특강 신청
+    @Transactional(rollbackFor = {Exception.class})
     public LectureSchedule lectureScheduleApply(Long lectureScheduleId, Long userId) {
-        // 특강 스케쥴 테이블 lectureScheduleId로 조회
         LectureSchedule lectureSchedule = lectureScheduleRepository.lockFindByLectureScheduleId(lectureScheduleId);
-
-        // 해당 id registerCnt 1증가
-        LectureSchedule apply = lectureSchedule.apply();
+        LectureSchedule apply = lectureSchedule.apply(lectureApplyValid, userId);
         lectureHistoryRepository.save(LectureHistory.create(null, lectureScheduleRepository.save(apply), userId));
 
         return lectureSchedule;
+    }
+
+    public Boolean lectureApplyCheck(Long userId, Long lectureScheduleId) {
+        LectureSchedule lectureSchedule = lectureScheduleRepository.findById(lectureScheduleId);
+        return lectureHistoryRepository.findLectureHistoryByLectureScheduleAndUserId(lectureSchedule, userId).isEmpty();
     }
 }

@@ -17,7 +17,7 @@ public class LectureHistoryEntity extends BaseEntity{
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "lecture_schedule_id")
     private LectureScheduleEntity lectureSchedule;
 

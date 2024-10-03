@@ -17,4 +17,6 @@ public class LectureHistory {
     public static LectureHistory create(Long id, LectureSchedule lectureSchedule, Long userId) {
         return new LectureHistory(id, lectureSchedule, userId);
     }
+
+
 }
