@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Repository
@@ -21,5 +22,10 @@ public class LectureRepositoryImpl implements LectureRepository {
         return lectureJpaRepository.findAll().stream()
                 .map(LectureMapper::toDomain)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public Optional<Lecture> getReferenceById(Long id) {
+        return Optional.of(LectureMapper.toDomain(lectureJpaRepository.getReferenceById(id)));
     }
 }

@@ -1,9 +1,9 @@
 package com.example.hhplus2weeks.domain.lecture.service;
 
+import com.example.hhplus2weeks.api.dto.LectureHistoryResponse;
 import com.example.hhplus2weeks.domain.lecture.Lecture;
 import com.example.hhplus2weeks.domain.lecture.LectureHistory;
 import com.example.hhplus2weeks.domain.lecture.LectureSchedule;
-import com.example.hhplus2weeks.domain.lecture.exception.DuplicateRequestsException;
 import com.example.hhplus2weeks.domain.lecture.repository.LectureHistoryRepository;
 import com.example.hhplus2weeks.domain.lecture.repository.LectureRepository;
 import com.example.hhplus2weeks.domain.lecture.repository.LectureScheduleRepository;
@@ -54,8 +54,30 @@ public class LectureService {
         return lectureSchedule;
     }
 
-    public Boolean lectureApplyCheck(Long userId, Long lectureScheduleId) {
-        LectureSchedule lectureSchedule = lectureScheduleRepository.findById(lectureScheduleId);
-        return lectureHistoryRepository.findLectureHistoryByLectureScheduleAndUserId(lectureSchedule, userId).isEmpty();
+    // 신청완료한 특강 목록
+    public List<LectureHistoryResponse> findLectureHistoryByUserId(Long userId) {
+        // Step 1: 유저의 신청 기록을 가져옴
+        List<LectureHistory> historyies = lectureHistoryRepository.findLectureHistoryByUserId(userId);
+
+        // Step 2: 신청 기록에 해당하는 LectureSchedule 정보 조회
+        List<LectureHistoryResponse> responseList = new ArrayList<>();
+
+        for (LectureHistory history : historyies) {
+            LectureSchedule schedule = lectureScheduleRepository.findById(history.getLectureSchedule().getId());
+
+            // Step 3: 해당 강의 스케줄의 lecture_id로 LectureEntity를 조회
+            Optional<Lecture> lecture = lectureRepository.getReferenceById(schedule.getLecture().getId());
+
+            // LectureHistoryResponse에 필요한 데이터를 추가
+            LectureHistoryResponse response = new LectureHistoryResponse(
+                    lecture.get().getId(),   // Lecture ID
+                    lecture.get().getTitle(), // Lecture Title
+                    schedule.getSpeaker() // 강연자 정보
+            );
+
+            responseList.add(response);
+        }
+
+        return responseList;
     }
 }
