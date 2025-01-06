@@ -1,5 +1,8 @@
 package com.example.hhplus2weeks.domain.lecture;
 
+import com.example.hhplus2weeks.domain.lecture.exception.CapacityExceededException;
+import com.example.hhplus2weeks.domain.lecture.exception.DuplicateRequestsException;
+import com.example.hhplus2weeks.domain.lecture.service.LectureApplyValid;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
@@ -26,7 +29,15 @@ public class LectureSchedule {
         return new LectureSchedule(id, lecture, speaker, registerCount, registerMaxCount, lectureDateTime);
     }
 
-    public LectureSchedule apply() {
+    public LectureSchedule apply(LectureApplyValid lectureApplyValid, Long userId) {
+        if (lectureApplyValid.isApplyCheck(this, userId)) {
+            throw new DuplicateRequestsException("이미 신청된 강의입니다.");
+        }
+
+        if(this.registerCount >= this.registerMaxCount){
+            throw new CapacityExceededException("정원이 초과된 특강입니다.");
+        }
+
         this.registerCount += 1;
         return this;
     }

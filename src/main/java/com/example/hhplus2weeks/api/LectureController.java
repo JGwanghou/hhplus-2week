@@ -1,6 +1,7 @@
 package com.example.hhplus2weeks.api;
 
 import com.example.hhplus2weeks.api.dto.ApplyRequest;
+import com.example.hhplus2weeks.api.dto.LectureHistoryResponse;
 import com.example.hhplus2weeks.domain.lecture.Lecture;
 import com.example.hhplus2weeks.domain.lecture.LectureHistory;
 import com.example.hhplus2weeks.domain.lecture.LectureSchedule;
@@ -46,5 +47,11 @@ public class LectureController {
         return ResponseEntity.ok(lectureService.lectureScheduleApply(lectureScheduleId, applyRequest.getUserId()));
     }
 
-
+    /**
+     *  특강 신청 완료 목록 조회
+     */
+    @GetMapping("/{userId}/histories")
+    public ResponseEntity<List<LectureHistoryResponse>> history(@PathVariable Long userId){
+        return ResponseEntity.ok(lectureService.findLectureHistoryByUserId(userId));
+    }
 }
